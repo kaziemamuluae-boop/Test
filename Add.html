@@ -1,0 +1,308 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+  <title>📝 Update Daily Info</title>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" crossorigin="anonymous" referrerpolicy="no-referrer" />
+  <style>
+    body, * {
+      user-select: none;
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+    body {
+      font-family: 'Segoe UI', sans-serif;
+      background: linear-gradient(to right, #0f2027, #203a43, #2c5364);
+      color: #fff;
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      padding-bottom: 80px;
+    }
+    header {
+      height: 50px;
+      background: #1e2a38;
+      color: #00e0ff;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 20px;
+      font-weight: bold;
+      position: fixed;
+      top: 0;
+      width: 100%;
+      z-index: 1000;
+    }
+    main {
+      padding: 70px 10px 20px;
+      display: flex;
+      justify-content: center;
+      flex-grow: 1;
+    }
+    .container {
+      background: #1e2a38;
+      padding: 25px;
+      border-radius: 20px;
+      box-shadow: 0 10px 30px rgba(0, 0, 0, 0.4);
+      max-width: 450px;
+      width: 100%;
+    }
+    label {
+      display: block;
+      margin-top: 15px;
+      font-size: 14px;
+      color: #ccc;
+    }
+    input[type="text"],
+    input[type="number"],
+    input[type="date"] {
+      width: 100%;
+      padding: 10px;
+      margin-top: 5px;
+      border: 1px solid #00c6ff;
+      border-radius: 12px;
+      background: #0f1724;
+      color: #fff;
+      font-size: 15px;
+    }
+    input[readonly] {
+      background-color: #102030;
+      color: #aaa;
+    }
+    .save-button-fixed {
+      position: fixed;
+      bottom: 0;
+      left: 0;
+      width: 100%;
+      background: #1e2a38;
+      padding: 10px;
+      z-index: 999;
+    }
+    .animated-btn {
+      width: 100%;
+      padding: 12px;
+      background: none;
+      color: white;
+      font-size: 16px;
+      border: 2px solid #00c6ff;
+      border-radius: 15px;
+      cursor: pointer;
+      position: relative;
+      overflow: hidden;
+      transition: 0.4s ease;
+    }
+    .animated-btn::before {
+      content: "";
+      position: absolute;
+      width: 0%;
+      height: 100%;
+      background: #00c6ff;
+      top: 0;
+      left: 0;
+      z-index: -1;
+      transition: 0.4s;
+    }
+    .animated-btn:hover::before {
+      width: 100%;
+    }
+    .animated-btn:active {
+      transform: scale(0.98);
+    }
+    .result {
+      text-align: center;
+      margin-top: 10px;
+      min-height: 20px;
+    }
+  </style>
+</head>
+<body>
+  <header>📝 Update Daily Info</header>
+  <main>
+    <div class="container">
+      <label for="date">Date:</label>
+      <input type="date" id="date" readonly />
+
+      <label>Total Income (AED):</label>
+      <input type="number" id="revenue" placeholder="0.00" oninput="calculateAll()" />
+
+      <label>Careem Paid (AED):</label>
+      <input type="number" id="careem" placeholder="0.00" oninput="calculateAll()" />
+
+      <label>Tolls (AED):</label>
+      <input type="number" id="tolls" placeholder="0.00" oninput="calculateAll()" />
+
+      <label>Pos Tips (AED):</label>
+      <input type="number" id="tips" placeholder="0.00" oninput="calculateAll()" />
+
+      <label>Hired KM:</label>
+      <input type="number" id="hiredKM" placeholder="0" oninput="calculateAll()" />
+
+      <label>Vacant KM:</label>
+      <input type="number" id="vacantKM" placeholder="0" />
+
+      <label>Total Trip:</label>
+      <input type="number" id="totalTrip" placeholder="0" oninput="calculateAll()" />
+
+      <label>Airport Trip (20 AED):</label>
+      <input type="number" id="airportTrip" placeholder="0" oninput="calculateAll()" />
+
+      <label>Booking (AED 8, 9, 12):</label>
+      <input type="number" id="bookingAll" placeholder="0" oninput="calculateAll()" />
+
+      <label>Without Booking:</label>
+      <input type="number" id="withoutBooking" readonly placeholder="0" />
+
+      <label>Total Revenue (AED):</label>
+      <input type="text" id="totalRevenue" readonly />
+
+      <label>Clean Money (AED):</label>
+      <input type="text" id="cleanMoney" readonly />
+
+      <div class="result" id="resultMsg"></div>
+    </div>
+  </main>
+
+  <div class="save-button-fixed">
+    <button class="animated-btn" onclick="saveData()">💾 Save</button>
+  </div>
+
+  <script>
+    function getQueryParam(name) {
+      const urlParams = new URLSearchParams(window.location.search);
+      return urlParams.get(name);
+    }
+
+    function fillData(data) {
+      if (!data) return;
+      document.getElementById('date').value = data.date || '';
+      document.getElementById('revenue').value = data.revenue || 0;
+      document.getElementById('careem').value = data.careem || 0;
+      document.getElementById('tolls').value = data.tolls || 0;
+      document.getElementById('tips').value = data.tips || 0;
+      document.getElementById('hiredKM').value = data.hiredKM || 0;
+      document.getElementById('vacantKM').value = data.vacantKM || 0;
+      document.getElementById('totalTrip').value = data.totalTrip || 0;
+      document.getElementById('airportTrip').value = data.airportTrip || 0;
+      document.getElementById('bookingAll').value = data.bookingAll || 0;
+      document.getElementById('withoutBooking').value = data.withoutBooking || 0;
+      document.getElementById('totalRevenue').value = data.totalRevenue || 0;
+      document.getElementById('cleanMoney').value = data.cleanMoney || 0;
+    }
+
+    function calculateAll() {
+      const totalTrip = parseInt(document.getElementById('totalTrip').value) || 0;
+      const bookingAll = parseInt(document.getElementById('bookingAll').value) || 0;
+      const airport = parseInt(document.getElementById('airportTrip').value) || 0;
+
+      const without = totalTrip - (bookingAll + airport);
+      document.getElementById('withoutBooking').value = without >= 0 ? without : 0;
+
+      const revenue = parseFloat(document.getElementById('revenue').value) || 0;
+      const careem = parseFloat(document.getElementById('careem').value) || 0;
+      const tolls = parseFloat(document.getElementById('tolls').value) || 0;
+      const hiredKM = parseFloat(document.getElementById('hiredKM').value) || 0;
+      const tips = parseFloat(document.getElementById('tips').value) || 0;
+
+      const totalRevenue = revenue + careem;
+      document.getElementById('totalRevenue').value = totalRevenue.toFixed(2);
+
+      const deduction =
+        (hiredKM * 0.59) +
+        (bookingAll * 9.66) +
+        (airport * 15) +
+        (without * 2.5) +
+        tolls;
+
+      const cleanMoney = totalRevenue - deduction - tips;
+      document.getElementById('cleanMoney').value = cleanMoney.toFixed(2);
+    }
+
+    function saveData() {
+      const date = document.getElementById('date').value;
+      const revenue = parseFloat(document.getElementById('revenue').value);
+      const hiredKM = document.getElementById('hiredKM').value;
+      const vacantKM = document.getElementById('vacantKM').value;
+      const totalTrip = document.getElementById('totalTrip').value;
+      const resultDiv = document.getElementById('resultMsg');
+
+      if (!date) {
+        resultDiv.style.color = "red";
+        resultDiv.textContent = "⚠️ Date is required.";
+        return;
+      }
+      if (!revenue || !hiredKM || !vacantKM || !totalTrip) {
+        resultDiv.style.color = "red";
+        resultDiv.textContent = "⚠️ All required fields must be filled!";
+        return;
+      }
+      if (revenue < 12) {
+        resultDiv.style.color = "red";
+        resultDiv.textContent = "⚠️ Total Income must be at least 12 AED.";
+        return;
+      }
+
+      const data = {
+        date,
+        revenue,
+        careem: document.getElementById('careem').value,
+        tolls: document.getElementById('tolls').value,
+        tips: document.getElementById('tips').value,
+        hiredKM,
+        vacantKM,
+        totalTrip,
+        airportTrip: document.getElementById('airportTrip').value,
+        bookingAll: document.getElementById('bookingAll').value,
+        withoutBooking: document.getElementById('withoutBooking').value,
+        totalRevenue: document.getElementById('totalRevenue').value,
+        cleanMoney: document.getElementById('cleanMoney').value
+      };
+
+      const key = 'dtc_daily_data_' + date;
+      localStorage.setItem(key, JSON.stringify(data));
+      resultDiv.style.color = "lightgreen";
+      resultDiv.textContent = "✅ Data updated successfully! Redirecting...";
+
+      setTimeout(() => {
+        window.location.href = "DailySummary.html?date=" + date;
+      }, 1500);
+    }
+
+    window.onload = function () {
+      const dateFromURL = getQueryParam("date");
+      if (!dateFromURL) {
+        alert("No date specified!");
+        return;
+      }
+      const key = "dtc_daily_data_" + dateFromURL;
+      const raw = localStorage.getItem(key);
+      if (raw) {
+        try {
+          const data = JSON.parse(raw);
+          fillData(data);
+          calculateAll();
+        } catch {
+          alert("Invalid data format.");
+        }
+      } else {
+        document.getElementById('date').value = dateFromURL;
+      }
+    };
+  </script>
+
+<center>
+<script type="text/javascript">
+    atOptions = {
+        'key' : '2060f67b9b476db7a55d220094c1a081',
+        'format' : 'iframe',
+        'height' : 50,
+        'width' : 320,
+        'params' : {}
+    };
+</script>
+<script type="text/javascript" src="//www.highperformanceformat.com/2060f67b9b476db7a55d220094c1a081/invoke.js"></script>
+</center>
+
+</body>
+</html>
